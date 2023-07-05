@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JS Drum Kit</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="https://fav.farm/🔥" />
+</head>
+<body>
+
+
+  <div class="keys">
+    <div data-key="65" class="key">
+      <div class="progressBar">
+        <div class="progress"></div>
+      </div>
+      <kbd>A</kbd>
+      <span class="sound">clap</span>
+      <div class="hitCount">0</div>
+    </div>
+    <div data-key="83" class="key">
+      <div class="progressBar">
+        <div class="progress"></div>
+      </div>
+      <kbd>S</kbd>
+      <span class="sound">hihat</span>
+      <div class="hitCount">0</div>
+    </div>
+    <div data-key="68" class="key">
+      <div class="progressBar">
+        <div class="progress"></div>
+      </div>
+      <kbd>D</kbd>
+      <span class="sound">kick</span>
+      <div class="hitCount">0</div>
+    </div>
+    <div data-key="70" class="key">
+      <div class="progressBar">
+        <div class="progress"></div>
+      </div>
+      <kbd>F</kbd>
+      <span class="sound">openhat</span>
+      <div class="hitCount">0</div>
+    </div>
+    <div data-key="71" class="key">
+      <div class="progressBar">
+        <div class="progress"></div>
+      </div>
+      <kbd>G</kbd>
+      <span class="sound">boom</span>
+      <div class="hitCount">0</div>
+    </div>
+    <div data-key="72" class="key">
+      <div class="progressBar">
+        <div class="progress"></div>
+      </div>
+      <kbd>H</kbd>
+      <span class="sound">ride</span>
+      <div class="hitCount">0</div>
+    </div>
+    <div data-key="74" class="key">
+      <div class="progressBar">
+        <div class="progress"></div>
+      </div>
+      <kbd>J</kbd>
+      <span class="sound">snare</span>
+      <div class="hitCount">0</div>
+    </div>
+    <div data-key="75" class="key">
+      <div class="progressBar">
+        <div class="progress"></div>
+      </div>
+      <kbd>K</kbd>
+      <span class="sound">tom</span>
+      <div class="hitCount">0</div>
+    </div>
+    <div data-key="76" class="key">
+      <div class="progressBar">
+        <div class="progress"></div>
+      </div>
+      <kbd>L</kbd>
+      <span class="sound">tink</span>
+      <div class="hitCount">0</div>
+    </div>
+  </div>
+  <div class="totalCountDisplay">Total Hits: 0</div>
+
+
+  <audio data-key="65" src="sounds/clap.wav"></audio>
+  <audio data-key="83" src="sounds/hihat.wav"></audio>
+  <audio data-key="68" src="sounds/kick.wav"></audio>
+  <audio data-key="70" src="sounds/openhat.wav"></audio>
+  <audio data-key="71" src="sounds/boom.wav"></audio>
+  <audio data-key="72" src="sounds/ride.wav"></audio>
+  <audio data-key="74" src="sounds/snare.wav"></audio>
+  <audio data-key="75" src="sounds/tom.wav"></audio>
+  <audio data-key="76" src="sounds/tink.wav"></audio>
+
+<script>
+  var hitCounts = {};
+  var totalHitCount=0;
+  const totalHitCountDisplay = document.querySelector('.totalCountDisplay')
+  const keys =document.querySelectorAll('.key');
+
+  /**
+   * Function to show transition effect, update total hit counts and progress details
+   */
+  function updateProgressUI(){
+    keys.forEach(key => {
+      const dataKey = key.getAttribute('data-key');
+      const particularHitCount = hitCounts[dataKey] || 0;
+      const hitCountElement = key.querySelector('.hitCount');
+      hitCountElement.textContent = `${particularHitCount} / ${totalHitCount}` ;
+
+      const progress=key.querySelector('.progress');
+      const percentage= (particularHitCount/totalHitCount)*100;
+      progress.style.width = `${percentage}%`;
+      
+      totalHitCountDisplay.textContent = 'Total Hits: '+totalHitCount;
+
+      key.addEventListener('transitionend',removeTransition); 
+  })
+  }
+
+  /**
+   * function to remove transition after completing an event
+  */
+  function removeTransition(e) {
+    if (e.propertyName !== 'transform') return;
+    e.target.classList.remove('playing');
+
+  }
+
+  /**
+   * This function fetchs key details and plays corresponding audio
+   */
+  function playSound(e) {
+    const audio = document.querySelector(`audio[data-key="${e.keyCode}"]`);
+    const key = document.querySelector(`div[data-key="${e.keyCode}"]`);
+    if (audio){
+      hitCounts[e.keyCode] =  hitCounts[e.keyCode]?  hitCounts[e.keyCode]+1 : 1;
+      //when corresponding key is pressed, keep a count of it by adding it in object
+      totalHitCount = Object.values(hitCounts).reduce((acc, curr) => acc + curr, 0);
+      //meanwhile count total values of each key in the object created whenever key is pressed
+
+      updateProgressUI();
+
+    }
+    else return; // if no audio found (when other keys pressed) do  nothing
+
+    key.classList.add('playing');
+    audio.currentTime = 0;
+    audio.play();
+
+    key.addEventListener('transitionend', removeTransition); // end transition after some mili seconds
+
+  }
+    
+  window.addEventListener('keyup', playSound);
+  //trigger an event to play Sound on key-up
+  //Notice that key-down will trigger the event multiple times if we keep the buttom pressed for so long
+
+</script>
+
+
+</body>
+</html>
