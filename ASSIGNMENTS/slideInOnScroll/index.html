@@ -85,15 +85,32 @@
       }
     }
 
-    const allImages = document.querySelectorAll('.slide-in');
-    console.assert(allImages!== null,'image elements must exists')
-   // console.log(allImages)
+    /**
+     * This function updates the page number details;
+    */
+    function updatePageNumberDetails(){
 
-   const totalPages = document.querySelector('.total-page');
-   const currentPages = document.querySelector('.current-page');
+      const totalPages = document.querySelector('.total-page');
+      console.assert(totalPages!== null,'Total pages element must exists'); 
 
-    //We need to get called whenever user scrolls
-    window.addEventListener('scroll',(event)=>{
+      const currentPages = document.querySelector('.current-page');
+      console.assert(currentPages!== null,'current page element must exists')
+
+      totalPages.textContent = Math.round(document.body.offsetHeight/window.innerHeight) ;
+      // calculate total pages by diving total height of the scroll by the window height
+
+      currentPages.textContent = Math.ceil((window.scrollY || 1)/window.innerHeight);
+      // calculate current page by dividing the scroller pointer on y coordinate of scroll by the window height
+      // set defalt value  ( || 1) to set default pages as 1 when the scroller point in on '0'
+    }
+
+    /**
+     * This function controlls the slide animation for images 
+    */
+    function slideInOnScroll(){
+      const allImages = document.querySelectorAll('.slide-in');
+      console.assert(allImages!== null,'image elements must exists');
+
       allImages.forEach((image)=>{
         if(isArrivingWithinWindow(image)){
           image.classList.add('active');
@@ -101,19 +118,19 @@
           image.classList.remove('active');
         }
       })
-      
-    //console.log('total: ',document.body.offsetHeight)
-    //console.log('window: ', window.innerHeight)
-    //console.log('scroolY: ',window.scrollY)
+    }
 
-    totalPages.textContent = Math.round(document.body.offsetHeight/window.innerHeight) ;
-    // calculate total pages by diving total height of the scroll by the window height
-
-    currentPages.textContent = Math.ceil((window.scrollY || 1)/window.innerHeight);
-    // calculate current page by dividing the scroller pointer on y coordinate of scroll by the window height
-    // set defalt value  ( || 1) to set default pages as 1 when the scroller point in on '0'
-
+    //We need to get called whenever user scrolls
+    window.addEventListener('scroll',()=>{
+      slideInOnScroll();
+      updatePageNumberDetails();
     });
+
+    // Update the page number details on window resize
+    window.addEventListener('resize', updatePageNumberDetails);
+
+    // Update the page number details when page reloaded
+    window.addEventListener('load', updatePageNumberDetails);
 
   </script>
 
