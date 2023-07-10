@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JS Drum Kit</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="https://fav.farm/🔥" />
+</head>
+<body>
+
+  <div class="keys"></div>
+  <div class="totalCountDisplay">Total Hits: 0</div>
+
+  <script>
+    var hitCounts = {};
+    var totalHitCount = 0;
+    const totalHitCountDisplay = document.querySelector('.totalCountDisplay');
+
+    /**
+     * Function to fetch data from the json
+     * I have used async/wait to acgive the same
+     * I have tested it for two json files
+     * 1. https://gist.githubusercontent.com/NikhilNayak09/5b871497fee994099c6649de712a9862/raw/99167ceea87b3ed2e0dd027036025c27e38dfb4a/data-key.json
+     * this one is for the default keys which we had earlier
+     * 2. https://gist.githubusercontent.com/NikhilNayak09/50faa7889cd850e716c71fd3f8ddce6c/raw/a6cec7fc67c09a8d324226a5f1c161aca742ba84/data-keys-2.json
+     * this is for numbers from 1-9
+     */
+    async function getKeys() {
+      try {
+        const response = await fetch('https://gist.githubusercontent.com/NikhilNayak09/5b871497fee994099c6649de712a9862/raw/99167ceea87b3ed2e0dd027036025c27e38dfb4a/data-key.json');
+        const dataKeys = await response.json();
+        createDrumKit(dataKeys); // calling this function updates the content of HTML page
+      } catch (error) {
+        console.error('Error loading drum kit data:', error);
+      }
+    }
+
+
+    /**
+     * this function creates new HTML elements for each item present in our json file
+    */
+    function createDrumKit(dataKeys) {
+      dataKeys.forEach(key => {
+        const { keyCode, label, sound, soundFile } = key;
+
+        const keyElement = document.createElement('div');
+        keyElement.setAttribute('data-key', keyCode);
+        keyElement.classList.add('key');
+
+        const progressBar = document.createElement('div');
+        progressBar.classList.add('progressBar');
+        keyElement.appendChild(progressBar);
+
+        const progress = document.createElement('div');
+        progress.classList.add('progress');
+        progressBar.appendChild(progress);
+
+        const kbd = document.createElement('kbd');
+        kbd.textContent = label;
+        keyElement.appendChild(kbd);
+
+        const sounds = document.createElement('span');
+        sounds.classList.add('sound');
+        sounds.textContent = sound;
+        keyElement.appendChild(sounds);
+
+        const hitCount = document.createElement('div');
+        hitCount.classList.add('hitCount');
+        hitCount.textContent = '0';
+        keyElement.appendChild(hitCount);
+
+        
+        const audio = document.createElement('audio');
+        audio.setAttribute('data-key', keyCode);
+        audio.classList.add('audio-template');
+
+        const source = document.createElement('source');
+        source.setAttribute('src', soundFile);
+        audio.appendChild(source);
+        
+        const keysContainer = document.querySelector('.keys');
+        keysContainer.appendChild(keyElement);
+        keysContainer.appendChild(audio);
+        // Add key elements ad audio element inside a keys div element
+      });
+
+      const keys = document.querySelectorAll('.key');
+      keys.forEach(key => {
+        key.addEventListener('transitionend', removeTransition);
+      });
+
+      window.addEventListener('keyup', playSound);
+    }
+
+    function updateProgressUI() {
+      const keys = document.querySelectorAll('.key');
+      keys.forEach(key => {
+        const dataKey = key.getAttribute('data-key');
+        const particularHitCount = hitCounts[dataKey] || 0;
+        const hitCountElement = key.querySelector('.hitCount');
+        hitCountElement.textContent = `${particularHitCount} / ${totalHitCount}`;
+
+        const progress = key.querySelector('.progress');
+        const percentage = (particularHitCount / totalHitCount) * 100;
+        progress.style.width = `${percentage}%`;
+
+        totalHitCountDisplay.textContent = 'Total Hits: ' + totalHitCount;
+      });
+    }
+
+    function removeTransition(e) {
+      if (e.propertyName !== 'transform') return;
+      e.target.classList.remove('playing');
+    }
+
+    function playSound(e) {
+      const audio = document.querySelector(`audio[data-key="${e.keyCode}"]`);
+      const key = document.querySelector(`div[data-key="${e.keyCode}"]`);
+      if (audio) {
+        hitCounts[e.keyCode] = hitCounts[e.keyCode] ? hitCounts[e.keyCode] + 1 : 1;
+        totalHitCount = Object.values(hitCounts).reduce((acc, curr) => acc + curr, 0);
+        updateProgressUI();
+      } else return;
+
+      key.classList.add('playing');
+      audio.currentTime = 0;
+      audio.play();
+
+      key.addEventListener('transitionend', removeTransition);
+    }
+
+    getKeys();
+  </script>
+
+</body>
+</html>
